@@ -8,12 +8,47 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   username  String?
-  email     String?  @unique
+  email     String?    @unique
   password  String?
-  createdAt DateTime @default(now()) @map(name: "created_at")
-  updatedAt DateTime @updatedAt @map(name: "updated_at")
+  platforms Platform[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now()) @updatedAt
 
   @@map(name: "users")
+}
+
+model Platform {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id])
+  name           String
+  slug           String    @unique
+  email          String?
+  password       String?
+  hunterUsername String?
+  otp            String?
+  jwt            String?
+  type           String
+  programs       Program[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now()) @updatedAt
+
+  @@map(name: "platforms")
+}
+
+model Program {
+  id         String   @id @default(cuid())
+  platformId String
+  platform   Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  name       String
+  slug       String   @unique
+  vdp        Boolean
+  favourite  Boolean  @default(false)
+  tag        String?
+  url        String
+  type       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 }
