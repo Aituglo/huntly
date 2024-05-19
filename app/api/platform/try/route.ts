@@ -1,4 +1,5 @@
 import YesWeHack from "@/lib/yeswehack";
+import Hackerone from "@/lib/hackerone";
 
 export async function POST(req: Request) {
   const { platform, email, password, otp } = await req.json();
@@ -12,6 +13,13 @@ export async function POST(req: Request) {
       case "yeswehack":
         const jwt = await YesWeHack.getFullJWT(email, password, otp);
         if (!jwt) {
+          return Response.json({ message: "invalid credentials" }, { status: 400 });
+        } else {
+          return Response.json({ message: "valid credentials" });
+        }
+      case "hackerone":
+        const valid = await Hackerone.verifyLogin(email, password);
+        if (!valid) {
           return Response.json({ message: "invalid credentials" }, { status: 400 });
         } else {
           return Response.json({ message: "valid credentials" });

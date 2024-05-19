@@ -13,6 +13,8 @@ model User {
   email     String?    @unique
   password  String?
   platforms Platform[]
+  programs  Program[]
+  reports   Report[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @default(now()) @updatedAt
 
@@ -32,6 +34,7 @@ model Platform {
   jwt            String?
   type           String
   programs       Program[]
+  reports        Report[]
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @default(now()) @updatedAt
 
@@ -42,6 +45,9 @@ model Program {
   id         String   @id @default(cuid())
   platformId String
   platform   Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  report     Report[]
   name       String
   slug       String   @unique
   vdp        Boolean
@@ -49,6 +55,30 @@ model Program {
   tag        String?
   url        String
   type       String
+  bountyMin  Int?
+  bountyMax  Int?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now()) @updatedAt
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  platformId  String
+  platform    Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  programId   String
+  program     Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  title       String
+  reportId    String
+  bounty      Float?
+  currency    String?
+  collab      Boolean
+  status      String
+  cvssVector  String?
+  cvss        Float?
+  createdDate DateTime
+  updatedDate DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 }

@@ -2,28 +2,29 @@ import BreadCrumb from "@/components/breadcrumb";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
-import { Program } from "@/types/program";
+import { Report } from "@/types/report";
 import { redirect } from "next/navigation";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ProgramClient } from '@/components/tables/programs/client';
+import { ReportClient } from '@/components/tables/reports/client';
 
-const breadcrumbItems = [{ title: "Programs", link: "/dashboard/programs" }];
+const breadcrumbItems = [{ title: "Reports", link: "/dashboard/reports" }];
 
 export default async function page() {
   const session = await getServerSession(authOptions);
 
   if (!session) redirect("/auth/signin");
 
-  const programs: Program[] = await prisma.program.findMany({
+  const reports: Report[] = await prisma.report.findMany({
     where: {
       userId: session.user.id,
     },
     include: {
-      platform: true,
+      platform: true, 
+      program: true,      
     },
     orderBy: [
       {
-        name: "asc",
+        updatedDate: "desc",
       },
     ],
   });
@@ -32,7 +33,7 @@ export default async function page() {
     <ScrollArea className="h-full">
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <BreadCrumb items={breadcrumbItems} />
-        <ProgramClient data={programs} />
+        <ReportClient data={reports} />
       </div>
     </ScrollArea>
   );

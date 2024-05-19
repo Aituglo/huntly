@@ -10,8 +10,20 @@ export const navItems: NavItem[] = [
   {
     title: "Platforms",
     href: "/dashboard/platform",
-    icon: "settings",
+    icon: "list",
     label: "platforms",
+  },
+  {
+    title: "Programs",
+    href: "/dashboard/program",
+    icon: "files",
+    label: "programs",
+  },
+  {
+    title: "Reports",
+    href: "/dashboard/report",
+    icon: "penline",
+    label: "reports",
   },
   {
     title: "Settings",

@@ -44,6 +44,17 @@ export const createPlatform = async (data: any) => {
                     });
                 }
                 break;
+            case "hackerone":
+                await prisma.platform.update({
+                    where: {
+                        userId: session?.user.id,
+                        slug: "hackerone",
+                    },
+                    data: {
+                        hunterUsername: data.email,
+                    },
+                });
+                break;
             default:
                 return;
         }
