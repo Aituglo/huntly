@@ -1,6 +1,7 @@
 "use server";
 import { authOptions } from "@/lib/auth-options";
 import prisma from "@/lib/prisma";
+import YesWeHack from "@/lib/yeswehack";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 
@@ -26,6 +27,26 @@ export const createPlatform = async (data: any) => {
                 userId: session?.user.id,
             },
         });
+
+        switch (slug) {
+            case "yeswehack":
+                const username = await YesWeHack.getUsername(session?.user.id);
+
+                if (username) {
+                    await prisma.platform.update({
+                        where: {
+                            userId: session?.user.id,
+                            slug: "yeswehack",
+                        },
+                        data: {
+                            hunterUsername: username,
+                        },
+                    });
+                }
+                break;
+            default:
+                return;
+        }
     } catch (error) {}
 
     revalidatePath("/dashboard/platform");

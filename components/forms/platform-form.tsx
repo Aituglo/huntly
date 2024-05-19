@@ -59,6 +59,20 @@ export const PlatformForm: React.FC<PlatformFormProps> = ({ initialData }) => {
     defaultValues,
   });
 
+  const tryCredentials = async () => {
+    try {
+      console.log(form.getValues());
+      const res = await fetch(`/api/platform/try`, {
+        method: "POST",
+        body: JSON.stringify(form.getValues()),
+      });
+      const data = await res.json();
+      console.log(data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   const onSubmit = async (data: PlatformFormValues) => {
     try {
       setLoading(true);
@@ -226,10 +240,14 @@ export const PlatformForm: React.FC<PlatformFormProps> = ({ initialData }) => {
               </>
             )}
           </div>
+          
           <Button disabled={loading} className="ml-auto" type="submit">
             {action}
           </Button>
         </form>
+        <Button onClick={() => tryCredentials()} className="ml-auto">
+            Try
+          </Button>
       </Form>
     </>
   );

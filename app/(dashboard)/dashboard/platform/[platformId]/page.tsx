@@ -4,7 +4,6 @@ import { authOptions } from "@/lib/auth-options";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PlatformForm } from "@/components/forms/platform-form";
 import { redirect } from "next/navigation";
-import { Platform } from "@/types/platform";
 import { getServerSession } from "next-auth";
 
 const breadcrumbItems = [{ title: "Platforms", link: "/dashboard/platforms" }];
@@ -27,7 +26,9 @@ export default async function page({ params }: { params: { platformId: string } 
     },
   });
 
-  platform.platform = platform.slug;
+  if (platform) {
+    platform.platform = platform.slug;
+  }
 
   return (
     <ScrollArea className="h-full">
