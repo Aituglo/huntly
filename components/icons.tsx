@@ -31,12 +31,14 @@ import {
   X,
   PenLine,
   Files,
-  List
+  List,
+  PieChart
 } from "lucide-react";
 
 export type Icon = LucideIcon;
 
 export const Icons = {
+  charts: PieChart,
   dashboard: LayoutDashboardIcon,
   list: List,
   files: Files,

@@ -146,6 +146,8 @@ export default class Hackerone {
           let bounty = null;
 
           if (report.attributes.bounty_awarded_at !== null) {
+            console.log("BOUNTYYYY")
+            console.log(report.id)
             bounty = 0.0;
             let bountyReq = await fetch(
               `https://api.hackerone.com/v1/hackers/reports/${report.id}`,

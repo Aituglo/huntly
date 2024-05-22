@@ -26,6 +26,12 @@ export const navItems: NavItem[] = [
     label: "reports",
   },
   {
+    title: "Stats",
+    href: "/dashboard/stats",
+    icon: "charts",
+    label: "stats",
+  },
+  {
     title: "Settings",
     href: "/dashboard/settings",
     icon: "settings",

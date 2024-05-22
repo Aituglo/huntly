@@ -1,16 +1,41 @@
 "use client";
 import { ColumnDef } from "@tanstack/react-table";
+import { ArrowUpDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { CellAction } from "./cell-action";
 import { Report } from "@/types/report";
 
 export const columns: ColumnDef<Report>[] = [
   {
     accessorKey: "title",
-    header: "TITLE",
+    header: "Title",
   },
   {
     accessorKey: "program.name",
-    header: "PROGRAM",
+    header: "Program",
+  },
+  {
+    accessorKey: "bounty",
+    header:  ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Bounty
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+    cell: ({ row  }) => {
+      const amount = parseFloat(row.getValue("bounty"))
+      const formatted = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: row.original.currency || "USD",
+      }).format(amount)
+ 
+      return <div className="font-medium">{formatted}</div>
+    },
   },
   {
     id: "actions",

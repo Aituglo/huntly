@@ -1,46 +1,23 @@
 
-export function RecentBounty() {
+const getBountyWithCurrency = (bounty: number, currency: string) => {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currency || "USD",
+  }).format(bounty);
+}
+
+export function RecentBounty({ reports } : { reports: any }) {
   return (
     <div className="space-y-8">
-      <div className="flex items-center">
-        <div className="space-y-1">
-          <p className="text-sm font-medium leading-none">Yahoo</p>
-          <p className="text-sm text-muted-foreground">
-            Hackerone
-          </p>
+      {reports.map((report: any) => (
+        <div key={report.id} className="flex items-center">
+          <div className="space-y-1">
+            <p className="text-sm font-medium leading-none">{report.platform.name}</p>
+            <p className="text-sm text-muted-foreground overflow-hidden truncate w-80">{report.program.name}</p>
+          </div>
+          <div className="ml-auto font-medium">{getBountyWithCurrency(report.bounty, report.currency)}</div>
         </div>
-        <div className="ml-auto font-medium">+$1,999.00</div>
-      </div>
-      <div className="flex items-center">
-        <div className="space-y-1">
-          <p className="text-sm font-medium leading-none">Infomaniak</p>
-          <p className="text-sm text-muted-foreground">Yes We Hack</p>
-        </div>
-        <div className="ml-auto font-medium">+$390.00</div>
-      </div>
-      <div className="flex items-center">
-        <div className="space-y-1">
-          <p className="text-sm font-medium leading-none">Open Sea</p>
-          <p className="text-sm text-muted-foreground">
-            Hackerone
-          </p>
-        </div>
-        <div className="ml-auto font-medium">+$200000.00</div>
-      </div>
-      <div className="flex items-center">
-        <div className="space-y-1">
-          <p className="text-sm font-medium leading-none">Booking</p>
-          <p className="text-sm text-muted-foreground">Hackerone</p>
-        </div>
-        <div className="ml-auto font-medium">+$3000.00</div>
-      </div>
-      <div className="flex items-center">
-        <div className="space-y-1">
-          <p className="text-sm font-medium leading-none">Doctolib</p>
-          <p className="text-sm text-muted-foreground">Yes We Hack</p>
-        </div>
-        <div className="ml-auto font-medium">+$2000.00</div>
-      </div>
+      ))}
     </div>
   );
 }

@@ -175,9 +175,7 @@ export default class YesWeHack {
     }
 
     // TODO: handle collab
-    const reportsUrls = [
-      "https://api.yeswehack.com/user/reports",
-    ];
+    const reportsUrls = ["https://api.yeswehack.com/user/reports"];
 
     reportsUrls.forEach(async (url) => {
       let page = 1;
@@ -210,25 +208,38 @@ export default class YesWeHack {
                 },
               });
 
-              if (program) {
-                await prisma.report.create({
+              if (!program) {
+                program = await prisma.program.create({
                   data: {
                     userId: userId,
                     platformId: platformId,
-                    programId: program.id,
-                    title: report.title,
-                    reportId: report.local_id,
-                    bounty: parseFloat((report.reward / 100).toFixed(2)),
-                    currency: report.currency,
-                    collab: report.collaborative,
-                    status: report.status.workflow_state,
-                    cvssVector: report.cvss.vector,
-                    cvss: report.cvss.score,
-                    createdDate: report.created_at,
-                    updatedDate: report.changed_at,
+                    name: report.program.title,
+                    slug: report.program.slug,
+                    url: `https://yeswehack.com/programs/${report.program.slug}`,
+                    vdp: !report.program.bounty,
+                    type: report.program.public ? "public" : "private",
+                    bountyMin: report.program.bounty_reward_min,
+                    bountyMax: report.program.bounty_reward_max,
                   },
                 });
               }
+              await prisma.report.create({
+                data: {
+                  userId: userId,
+                  platformId: platformId,
+                  programId: program.id,
+                  title: report.title,
+                  reportId: report.local_id,
+                  bounty: parseFloat((report.reward / 100).toFixed(2)),
+                  currency: report.currency,
+                  collab: report.collaborative,
+                  status: report.status.workflow_state,
+                  cvssVector: report.cvss.vector,
+                  cvss: report.cvss.score,
+                  createdDate: report.created_at,
+                  updatedDate: report.changed_at,
+                },
+              });
             } else {
               await prisma.report.update({
                 where: {

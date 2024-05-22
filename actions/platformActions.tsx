@@ -58,10 +58,34 @@ export const createPlatform = async (data: any) => {
             default:
                 return;
         }
-    } catch (error) {}
+    } catch (error) {
+        console.log(error)
+    }
 
     revalidatePath("/dashboard/platform");
 };
+
+export const updatePlatform = async (id: string, data: any) => {
+    const session = await getServerSession(authOptions);
+
+    try {
+        await prisma.platform.update({
+            where: {
+                id: id,
+                userId: session?.user.id,
+            },
+            data: {
+                email: data.email,
+                password: data.password,
+                otp: data.otp,
+            },
+        });
+    } catch (error) {
+        console.log(error)
+    }
+
+    revalidatePath("/dashboard/platform");
+}
 
 export const deletePlatform = async (id: string) => {
     const session = await getServerSession(authOptions);

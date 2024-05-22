@@ -42,7 +42,7 @@ export default async function page() {
     },
     orderBy: [
       {
-        updatedDate: "desc",
+        createdDate: "desc",
       },
     ],
   });
@@ -51,12 +51,15 @@ export default async function page() {
   let revenueLastMonth = 0;
   reports.forEach((report) => {
     totalRevenue += report.bounty;
-    if (report.updatedDate.getMonth() === new Date().getMonth() - 1) {
+    if (report.createdDate.getMonth() === new Date().getMonth() - 1 && report.createdDate.getFullYear() === new Date().getFullYear()){
       revenueLastMonth += report.bounty;
     }
   });
 
+  let lastFiveReportsWithBounty = reports.filter((report) => report.bounty > 0).slice(0, 5);
+
   let totalPrograms = programs.length;
+  let thisYearReports = reports.filter((report) => report.createdDate.getFullYear() === new Date().getFullYear());
 
   return (
     <ScrollArea className="h-full">
@@ -65,9 +68,6 @@ export default async function page() {
           <h2 className="text-3xl font-bold tracking-tight">
             Hi, Welcome back 👋
           </h2>
-          <div className="hidden md:flex items-center space-x-2">
-            <CalendarDateRangePicker />
-          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -164,16 +164,15 @@ export default async function page() {
               <CardTitle>Overview</CardTitle>
             </CardHeader>
             <CardContent className="pl-2">
-              <Overview />
+              <Overview reports={thisYearReports} />
             </CardContent>
           </Card>
           <Card className="col-span-4 md:col-span-3">
             <CardHeader>
               <CardTitle>Recent Bounty</CardTitle>
-              <CardDescription>You made 50 bounty this month.</CardDescription>
             </CardHeader>
             <CardContent>
-              <RecentBounty />
+              <RecentBounty reports={lastFiveReportsWithBounty} />
             </CardContent>
           </Card>
         </div>

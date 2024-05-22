@@ -4,7 +4,7 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { createPlatform } from "@/actions/platformActions";
+import { createPlatform, updatePlatform } from "@/actions/platformActions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -59,15 +59,27 @@ export const PlatformForm: React.FC<PlatformFormProps> = ({ initialData }) => {
     defaultValues,
   });
 
-  const tryCredentials = async () => {
+  const tryCredentials = () => {
     try {
-      console.log(form.getValues());
-      const res = await fetch(`/api/platform/try`, {
+
+      fetch(`/api/platform/try`, {
         method: "POST",
         body: JSON.stringify(form.getValues()),
-      });
-      const data = await res.json();
-      console.log(data);
+      }).then((res) => res.json()).then((data) => {
+        if (data.message === "valid credentials") {
+          toast({
+            variant: "default",
+            title: "Credentials are valid."
+          });
+        }
+        else {
+          toast({
+            variant: "destructive",
+            title: "Credentials are invalid."
+          });
+        }
+      }
+      );
     } catch (err) {
       console.log(err);
     }
@@ -77,13 +89,17 @@ export const PlatformForm: React.FC<PlatformFormProps> = ({ initialData }) => {
     try {
       setLoading(true);
 
-      createPlatform(data);
+      if (initialData) {
+        await updatePlatform(initialData.id, data);
+      } else {
+        await createPlatform(data);
+      }
 
-      router.push(`/dashboard/platform`);
       toast({
         variant: "default",
         title: toastMessage
       });
+      router.push(`/dashboard/platform`);
     } catch (error: any) {
       toast({
         variant: "destructive",
