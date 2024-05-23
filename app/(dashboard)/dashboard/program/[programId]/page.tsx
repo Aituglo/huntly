@@ -1,44 +1,52 @@
-import BreadCrumb from "@/components/breadcrumb";
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth-options";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { PlatformForm } from "@/components/forms/platform-form";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 
-const breadcrumbItems = [{ title: "Platforms", link: "/dashboard/platforms" }];
+const breadcrumbItems = [{ title: "Program", link: "/dashboard/program" }];
 
-export default async function page({ params }: { params: { platformId: string } }) {
+export default async function page({ params }: { params: { programId: string } }) {
   const session = await getServerSession(authOptions);
 
   if (!session) redirect("/auth/signin");
 
-  const platform = await prisma.platform.findUnique({
+  const program = await prisma.program.findUnique({
     where: {
-      id: params.platformId,
+      id: params.programId,
     },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      email: true,
-      type: true,
+    include: {
+      scope: true,
     },
   });
 
-  if (platform) {
-    platform.platform = platform.slug;
-  }
+  if (!program) redirect("/dashboard/program");
 
   return (
-    <ScrollArea className="h-full">
-      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-        <BreadCrumb items={breadcrumbItems} />
-        <PlatformForm
-          initialData={platform}
-          key={null}
-        />
+    <div className="p-4">
+      <h1 className="text-xl font-bold">{program.name}</h1>
+      <p><a href={program.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{program.url}</a></p>
+      <div className="mt-4">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Scope
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Type
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {program.scope.map((scope) => (
+              <tr key={scope.id}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{scope.scope}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{scope.scopeType}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-    </ScrollArea>
+    </div>
   );
 }

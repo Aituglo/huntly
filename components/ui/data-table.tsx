@@ -20,6 +20,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "./input";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "./select";
 import { Button } from "./button";
 import { ScrollArea, ScrollBar } from "./scroll-area";
 
@@ -34,12 +41,14 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   searchKey: string;
+  filterBy: string;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   searchKey,
+  filterBy,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] =
@@ -53,9 +62,6 @@ export function DataTable<TData, TValue>({
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    meta: {
-      data,
-    },
     state: {
       sorting,
       columnVisibility,
@@ -67,18 +73,60 @@ export function DataTable<TData, TValue>({
 
   return (
     <>
-      <div className="flex items-center py-4">
+      <div className="flex items-center py-4 space-x-4">
         <Input
           placeholder={`Search ${searchKey}...`}
           value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn(searchKey)?.setFilterValue(event.target.value)
           }
-          className="w-full md:max-w-sm"
+          className="flex-2 "
         />
+        <Select
+          value={(table.getColumn(filterBy)?.getFilterValue() as string) ?? ""}
+          onValueChange={(value) =>
+            table.getColumn(filterBy)?.setFilterValue(value)
+          }
+          className="flex-1 md:w-1/3"
+        >
+          <SelectTrigger>
+            <SelectValue>
+              {(table.getColumn(filterBy)?.getFilterValue() as string) ??
+                "All"}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem key="all" value="">
+              All
+            </SelectItem>
+            <SelectItem value="private">Private</SelectItem>
+            <SelectItem value="public">Public</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={(table.getColumn(filterBy)?.getFilterValue() as string) ?? ""}
+          onValueChange={(value) =>
+            table.getColumn(filterBy)?.setFilterValue(value)
+          }
+          className="flex-1 md:w-1/3"
+        >
+          <SelectTrigger>
+            <SelectValue>
+              {(table.getColumn(filterBy)?.getFilterValue() as string) ??
+                "All"}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem key="all" value="">
+              All
+            </SelectItem>
+            <SelectItem value="private">Private</SelectItem>
+            <SelectItem value="public">Public</SelectItem>
+          </SelectContent>
+        </Select>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
+            <Button variant="outline" className="ml-auto md:w-1/3">
               Columns
             </Button>
           </DropdownMenuTrigger>

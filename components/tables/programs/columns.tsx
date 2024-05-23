@@ -20,7 +20,7 @@ export const columns: ColumnDef<Program>[] = [
       )
     },
     cell: ({ row }) => {
-      return <div className="">{row.getValue("name")}</div>
+      return <div>{row.getValue("name")}</div>
     },
   },
   {

@@ -1,10 +1,5 @@
-import { SHA256 as sha256 } from "crypto-js";
+import { hashPassword } from "@/lib/utils";
 import prisma from "@/lib/prisma";
-
-const hashPassword = (string: string) => {
-  return sha256(string).toString();
-};
-
 
 export async function POST(req: Request) {
   const { email, password } = await req.json();

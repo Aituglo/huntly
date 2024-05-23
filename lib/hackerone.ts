@@ -60,54 +60,106 @@ export default class Hackerone {
       const programsResp = await programsReq.json();
       if (!programsResp.links.next) {
         hasNext = false;
-      } else {
-        programsResp.data.forEach(async (program: any) => {
-          const existingProgram = await prisma.program.findFirst({
-            where: {
+      }
+      programsResp.data.forEach(async (program: any) => {
+        const existingProgram = await prisma.program.findFirst({
+          where: {
+            userId: userId,
+            slug: program.attributes.handle,
+          },
+        });
+
+        if (!existingProgram) {
+          await prisma.program.create({
+            data: {
               userId: userId,
+              platformId: platformId,
+              name: program.attributes.name,
               slug: program.attributes.handle,
+              url: `https://hackerone.com/${program.attributes.handle}`,
+              vdp: !program.attributes.offers_bounties,
+              type:
+                program.attributes.state === "public_mode"
+                  ? "public"
+                  : "private",
+              bountyMin: 0,
+              bountyMax: 0,
             },
           });
-
-          if (!existingProgram) {
-            await prisma.program.create({
-              data: {
-                userId: userId,
-                platformId: platformId,
-                name: program.attributes.name,
-                slug: program.attributes.handle,
-                url: `https://hackerone.com/${program.attributes.handle}`,
-                vdp: !program.attributes.offers_bounties,
-                type:
-                  program.attributes.state === "public_mode"
-                    ? "public"
-                    : "private",
-                bountyMin: 0,
-                bountyMax: 0,
-              },
-            });
-          } else {
-            await prisma.program.update({
-              where: {
-                id: existingProgram.id,
-              },
-              data: {
-                name: program.attributes.name,
-                url: `https://hackerone.com/${program.attributes.handle}`,
-                vdp: !program.attributes.offers_bounties,
-                type:
-                  program.attributes.state === "public_mode"
-                    ? "public"
-                    : "private",
-                bountyMin: 0,
-                bountyMax: 0,
-              },
-            });
-          }
-        });
-        page++;
-      }
+        } else {
+          await prisma.program.update({
+            where: {
+              id: existingProgram.id,
+            },
+            data: {
+              name: program.attributes.name,
+              url: `https://hackerone.com/${program.attributes.handle}`,
+              vdp: !program.attributes.offers_bounties,
+              type:
+                program.attributes.state === "public_mode"
+                  ? "public"
+                  : "private",
+              bountyMin: 0,
+              bountyMax: 0,
+            },
+          });
+        }
+        await this.reloadProgramScope(userId, platform, program.attributes.handle);
+      });
+      page++;
     }
+  }
+
+  static async reloadProgramScope(userId: string, platform: any, slug: string) {
+    const programReq = await fetch(
+      `https://api.hackerone.com/v1/hackers/programs/${slug}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Basic ${btoa(
+            platform.email + ":" + platform.password,
+          )}`,
+        },
+      },
+    );
+
+    const programResp = await programReq.json();
+
+    const program = await prisma.program.findFirst({
+      where: {
+        userId: userId,
+        slug: slug,
+      },
+    });
+
+    programResp.relationships.structured_scopes.data.forEach(async (scope: any) => {
+      const existingScope = await prisma.scope.findFirst({
+        where: {
+          programId: program.id,
+          scope: scope.attributes.asset_identifier,
+        },
+      });
+
+      if (!existingScope) {
+        await prisma.scope.create({
+          data: {
+            programId: program.id,
+            scope: scope.attributes.asset_identifier,
+            scopeType: scope.attributes.asset_type,
+          },
+        });
+      } else {
+        await prisma.scope.update({
+          where: {
+            id: existingScope.id,
+          },
+          data: {
+            scope: scope.attributes.asset_identifier,
+            scopeType: scope.attributes.asset_type,
+          },
+        });
+      }
+    });
   }
 
   static async reloadReports(userId: string, platformId: string) {
@@ -135,81 +187,53 @@ export default class Hackerone {
       const reportsResp = await reportsReq.json();
       if (!reportsResp.links.next) {
         hasNext = false;
-      } else {
-        reportsResp.data.forEach(async (report: any) => {
-          const existingReport = await prisma.report.findFirst({
+      }
+      reportsResp.data.forEach(async (report: any) => {
+        const existingReport = await prisma.report.findFirst({
+          where: {
+            userId: userId,
+            reportId: report.id,
+          },
+        });
+
+        if (report.attributes.bounty_awarded_at !== null) {
+          let bounty = 0;
+          let bountyReq = await fetch(
+            `https://api.hackerone.com/v1/hackers/reports/${report.id}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Basic ${btoa(
+                  platform.email + ":" + platform.password,
+                )}`,
+              },
+            },
+          );
+          let bountyResp = await bountyReq.json();
+          bountyResp.data.relationships.bounties.data.forEach((bountyResp: any) => {
+            bounty += parseFloat(bountyResp.attributes.awarded_amount);
+            report.bounty = bounty;
+          });
+          
+        }
+
+        if (!existingReport) {
+          let program = await prisma.program.findFirst({
             where: {
               userId: userId,
-              reportId: report.id,
+              slug: report.relationships.program.data.attributes.handle,
             },
           });
-          let bounty = null;
 
-          if (report.attributes.bounty_awarded_at !== null) {
-            console.log("BOUNTYYYY")
-            console.log(report.id)
-            bounty = 0.0;
-            let bountyReq = await fetch(
-              `https://api.hackerone.com/v1/hackers/reports/${report.id}`,
-              {
-                method: "GET",
-                headers: {
-                  Authorization: `Basic ${btoa(
-                    platform.email + ":" + platform.password,
-                  )}`,
-                },
-              },
-            );
-            let bountyResp = await bountyReq.json();
-            bountyResp.data.relationships.bounties.data.forEach(
-              (bounty: any) => {
-                bounty += bounty.attributes.awarded_amount;
-              },
-            );
-          }
-
-          if (!existingReport) {
-            let program = await prisma.program.findFirst({
-              where: {
-                userId: userId,
-                slug: report.relationships.program.data.attributes.handle,
-              },
-            });
-
-            if (program) {
-              await prisma.report.create({
-                data: {
-                  userId: userId,
-                  platformId: platformId,
-                  programId: program.id,
-                  title: report.attributes.title,
-                  reportId: report.id,
-                  bounty: bounty,
-                  currency: "USD",
-                  collab: false,
-                  status: report.attributes.state,
-                  cvssVector: report.relationships.severity.data.attributes
-                    .cvss_vector_string
-                    ? report.relationships.severity.data.attributes
-                        .cvss_vector_string
-                    : null,
-                  cvss: report.relationships.severity.data.attributes.score
-                    ? report.relationships.severity.data.attributes.score
-                    : null,
-                  createdDate: report.attributes.created_at,
-                  updatedDate: report.attributes.last_public_activity_at,
-                },
-              });
-            }
-          } else {
-            await prisma.report.update({
-              where: {
-                id: existingReport.id,
-              },
+          if (program) {
+            await prisma.report.create({
               data: {
+                userId: userId,
+                platformId: platformId,
+                programId: program.id,
                 title: report.attributes.title,
                 reportId: report.id,
-                bounty: bounty,
+                bounty: report.bounty || 0,
                 currency: "USD",
                 collab: false,
                 status: report.attributes.state,
@@ -226,9 +250,33 @@ export default class Hackerone {
               },
             });
           }
-        });
-        page++;
-      }
+        } else {
+          await prisma.report.update({
+            where: {
+              id: existingReport.id,
+            },
+            data: {
+              title: report.attributes.title,
+              reportId: report.id,
+              bounty: report.bounty || 0,
+              currency: "USD",
+              collab: false,
+              status: report.attributes.state,
+              cvssVector: report.relationships.severity.data.attributes
+                .cvss_vector_string
+                ? report.relationships.severity.data.attributes
+                    .cvss_vector_string
+                : null,
+              cvss: report.relationships.severity.data.attributes.score
+                ? report.relationships.severity.data.attributes.score
+                : null,
+              createdDate: report.attributes.created_at,
+              updatedDate: report.attributes.last_public_activity_at,
+            },
+          });
+        }
+      });
+      page++;
     }
   }
 }

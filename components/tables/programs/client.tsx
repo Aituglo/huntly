@@ -45,7 +45,7 @@ export const ProgramClient: React.FC<ProgramsProps> = ({ data }) => {
         </Button>
       </div>
       <Separator />
-      <DataTable searchKey="name" columns={columns} data={data} />
+      <DataTable searchKey="name" columns={columns} data={data} filterBy="type" />
     </>
   );
 };

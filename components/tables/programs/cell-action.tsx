@@ -27,7 +27,11 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-
+          <DropdownMenuItem
+            onClick={() => window.location.href = `/dashboard/program/${data.id}`}
+          >
+            See more
+          </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => {}}
           >

@@ -57,8 +57,23 @@ model Program {
   type       String
   bountyMin  Int?
   bountyMax  Int?
+  scope      Scope[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now()) @updatedAt
+
+  @@map(name: "programs")
+}
+
+model Scope {
+  id        String   @id @default(cuid())
+  programId String
+  program   Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  scope     String
+  scopeType String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@map(name: "scopes")
 }
 
 model Report {
@@ -81,4 +96,6 @@ model Report {
   updatedDate DateTime
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now()) @updatedAt
+
+  @@map(name: "reports")
 }

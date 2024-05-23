@@ -12,8 +12,9 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useToast } from "@/components/ui/use-toast"; // Added useToast import
 import * as z from "zod";
 
 const formSchema = z.object({
@@ -26,7 +27,9 @@ type UserFormValue = z.infer<typeof formSchema>;
 export default function UserAuthForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl");
+  const error = searchParams.get("error");
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast(); // Initialized toast
   const defaultValues = {
     email: "",
     password: "",
@@ -36,12 +39,24 @@ export default function UserAuthForm() {
     defaultValues,
   });
 
+  useEffect(() => {
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Login failed",
+        description: "Invalid credentials provided.",
+      });
+    }
+  }, [error, toast]);
+
   const onSubmit = async (data: UserFormValue) => {
-    signIn("credentials", {
+    setLoading(true);
+    const result = await signIn("credentials", {
       email: data.email,
       password: data.password,
       callbackUrl: callbackUrl ?? "/dashboard",
     });
+    setLoading(false);
   };
 
   return (

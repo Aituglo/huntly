@@ -162,10 +162,61 @@ export default class YesWeHack {
               },
             });
           }
+          await this.reloadProgramScope(userId, jwt, program.slug);
         });
         page++;
       }
     }
+  }
+
+  static async reloadProgramScope(userId: string, jwt: string, slug: string) {
+    const programReq = await fetch(
+      `https://api.yeswehack.com/programs/${slug}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      },
+    );
+
+    const programResp = await programReq.json();
+
+    const program = await prisma.program.findFirst({
+      where: {
+        userId: userId,
+        slug: slug,
+      },
+    });
+
+    programResp.scopes.forEach(async (scope: any) => {
+      const existingScope = await prisma.scope.findFirst({
+        where: {
+          programId: program.id,
+          scope: scope.scope,
+        },
+      });
+
+      if (!existingScope) {
+        await prisma.scope.create({
+          data: {
+            programId: program.id,
+            scope: scope.scope,
+            scopeType: scope.scope_type,
+          },
+        });
+      } else {
+        await prisma.scope.update({
+          where: {
+            id: existingScope.id,
+          },
+          data: {
+            scope: scope.scope,
+            scopeType: scope.scope_type,
+          },
+        });
+      }
+    });
   }
 
   static async reloadReports(userId: string, platformId: string) {
